@@ -1,21 +1,10 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Client } from './client.entity';
 import { SentMail } from './sent-mail.entity';
+import { BaseEntity } from './base.entity';
 
 @Entity({ name: 'logs' })
-export class Log {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export class Log extends BaseEntity {
   @ManyToOne(() => Client, (client) => client.logs, { nullable: false })
   @JoinColumn({ name: 'client_id' })
   client!: Client;
@@ -32,13 +21,4 @@ export class Log {
 
   @Column({ nullable: true, default: null, name: 'attached_file' })
   attachedFile?: string;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt!: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt?: Date;
-
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt?: Date;
 }

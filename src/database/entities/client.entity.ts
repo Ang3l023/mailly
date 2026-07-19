@@ -1,20 +1,10 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { Log } from './log.entity';
 import { SentMail } from './sent-mail.entity';
+import { BaseEntity } from './base.entity';
 
 @Entity({ name: 'clients' })
-export class Client {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export class Client extends BaseEntity {
   @Column({ unique: true, nullable: false, name: 'api_key' })
   apiKey!: string;
 
@@ -26,15 +16,6 @@ export class Client {
 
   @Column({ nullable: false, default: true })
   enabled!: boolean;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt!: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt?: Date;
-
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt?: Date;
 
   @OneToMany(() => SentMail, (sentMail) => sentMail.client)
   sentMails!: SentMail[];

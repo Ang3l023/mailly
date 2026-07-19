@@ -1,23 +1,11 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { Client } from './client.entity';
 import { EStatusSentMail } from '../../common/enums/sent-mail/status.enum';
 import { Log } from './log.entity';
+import { BaseEntity } from './base.entity';
 
 @Entity('sent_mails')
-export class SentMail {
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export class SentMail extends BaseEntity {
   @Column({ unique: true, generated: 'uuid' })
   code!: string;
 
@@ -49,15 +37,6 @@ export class SentMail {
 
   @Column({ default: null, name: 'message_error' })
   messageError?: string;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt!: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt?: Date;
-
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt?: Date;
 
   @OneToMany(() => Log, (log) => log.sentMail)
   logs!: Log[];
