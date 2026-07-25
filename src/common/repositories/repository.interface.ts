@@ -9,7 +9,7 @@ export interface IRepository<T> {
 
   findOne(options: FindOneOptions<T>): Promise<T | null>;
 
-  update(id: number, data: DeepPartial<T>): Promise<T>;
+  update(id: number, data: DeepPartial<T>): Promise<T | null>;
 
   delete(id: number): Promise<void>;
 

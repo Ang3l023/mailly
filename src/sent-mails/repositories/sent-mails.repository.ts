@@ -20,8 +20,10 @@ export class SentMailsRepository extends BaseRepository<SentMail> {
 
   async findOneByIdAndClient(
     id: number,
-    client: Client,
+    clientId: number,
   ): Promise<SentMail | null> {
-    return await this.repository.findOne({ where: { client, id } });
+    return await this.repository.findOne({
+      where: { client: { id: clientId }, id },
+    });
   }
 }
