@@ -1,8 +1,10 @@
 import {
+  DataSource,
   DeepPartial,
   FindManyOptions,
   FindOneOptions,
   FindOptionsWhere,
+  QueryRunner,
   Repository,
 } from 'typeorm';
 
@@ -14,7 +16,10 @@ import { BaseEntity } from 'src/database/entities/base.entity';
 export abstract class BaseRepository<
   T extends BaseEntity,
 > implements IRepository<T> {
-  constructor(protected readonly repository: Repository<T>) {}
+  constructor(
+    protected readonly repository: Repository<T>,
+    protected readonly dataSource: DataSource,
+  ) {}
 
   async create(data: DeepPartial<T>): Promise<T> {
     const entity = this.repository.create(data);
@@ -59,5 +64,32 @@ export abstract class BaseRepository<
     return this.repository.exists({
       where: { id } as FindOptionsWhere<T>,
     });
+  }
+
+  async runInTransaction<I>(
+    work: (queryRunner: QueryRunner) => Promise<I>,
+  ): Promise<I> {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+
+    await queryRunner.startTransaction();
+
+    try {
+      // Ejecuta la lógica del negocio que pasaste como callback
+      const result = await work(queryRunner);
+
+      // Si todo fue bien, hace el commit
+      await queryRunner.commitTransaction();
+      return result;
+    } catch (error: any) {
+      // Si ocurrió un error, revierte los cambios
+      await queryRunner.rollbackTransaction();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      throw new Error(`Error en la transacción: ${error.message}`);
+    } finally {
+      // Garatiza que SIEMPRE se libere la conexión
+      await queryRunner.release();
+    }
   }
 }
