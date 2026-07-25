@@ -25,9 +25,9 @@ export class CreateSentMailDto {
   @IsEmail()
   to!: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  subject!: string;
+  subject?: string;
 
   @IsNotEmpty()
   @IsNumber()

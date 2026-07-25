@@ -5,6 +5,9 @@ import { Client } from './entities/client.entity';
 import { SentMail } from './entities/sent-mail.entity';
 import { Log } from './entities/log.entity';
 import { Template } from './entities/template.entity';
+import { Variable } from './entities/variable.entity';
+import { VariableOptions } from './entities/variable-options';
+import { VariableRules } from './entities/variable-rules';
 
 @Global()
 @Module({
@@ -21,7 +24,15 @@ import { Template } from './entities/template.entity';
         database: configService.get<string>('database.name'),
         synchronize: configService.get<boolean>('database.synchronize'),
         logging: configService.get<boolean>('database.logging'),
-        entities: [Client, SentMail, Log, Template],
+        entities: [
+          Client,
+          SentMail,
+          Log,
+          Template,
+          Variable,
+          VariableOptions,
+          VariableRules,
+        ],
       }),
       inject: [ConfigService],
     }),

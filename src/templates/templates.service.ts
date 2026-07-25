@@ -16,6 +16,12 @@ export class TemplatesService {
     const template = await this.templateRepository.findByCodeAndClient(
       code,
       client,
+      {
+        variables: {
+          options: true,
+          rules: true,
+        },
+      },
     );
 
     if (!template) {

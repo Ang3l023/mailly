@@ -14,6 +14,7 @@ import { IConfigSchema } from '../common/interfaces/config.interface';
 import { TemplatesService } from '../templates/templates.service';
 import { ISendMailCustom } from '../mails/interfaces/send-mail-custom.interface';
 import { SentMail } from '../database/entities/sent-mail.entity';
+import { validateTemplateVariables } from '../templates/utils/validate-template-variables';
 
 @Injectable()
 export class SentMailsService {
@@ -30,18 +31,22 @@ export class SentMailsService {
   async create(createSentMailDto: CreateSentMailDto, clientId: number) {
     const client = await this.clientService.findById(clientId);
 
-    const {
-      from,
-      to,
-      subject,
-      template: templateCode,
-      params,
-    } = createSentMailDto;
+    const { template: templateCode } = createSentMailDto;
+
+    const template = await this.templateService.findByCodeAndClient(
+      templateCode,
+      clientId,
+    );
+
+    if (!createSentMailDto.subject && !template.subject) {
+      throw new BadRequestException(`No valid subject has been provided.`);
+    }
 
     let sentMailId: number | null = null;
     let sentMailCode: string | null = null;
     let sentMailStatus: EStatusSentMail | null = null;
     let sentMailMessageError: string | null = null;
+    const { from, to, subject = template.subject!, params } = createSentMailDto;
 
     const sendMailDto: ISendMailCustom = {
       to,
@@ -50,10 +55,6 @@ export class SentMailsService {
       params,
     };
 
-    const template = await this.templateService.findByCodeAndClient(
-      templateCode,
-      clientId,
-    );
     if (template.file) {
       sendMailDto.template = template.filename;
     } else if (template.html) {
@@ -62,6 +63,18 @@ export class SentMailsService {
       throw new NotFoundException(
         `Not found a valid template with ID: ${templateCode}`,
       );
+    }
+
+    const paramsIsValid = validateTemplateVariables(
+      template.variables,
+      params || {},
+    );
+
+    if (!paramsIsValid.isValid) {
+      throw new BadRequestException({
+        message: `There are invalid parameters.`,
+        errors: paramsIsValid.errors,
+      });
     }
 
     try {
