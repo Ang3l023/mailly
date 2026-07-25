@@ -15,7 +15,7 @@ export class ClientsRepository extends BaseRepository<Client> {
 
   async findByApiKey(apiKey: string): Promise<Client | null> {
     return this.repository.findOne({
-      where: { apiKey },
+      where: { apiKey, enabled: true },
     });
   }
 }

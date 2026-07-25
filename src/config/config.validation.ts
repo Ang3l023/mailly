@@ -1,6 +1,9 @@
 import * as Joi from 'joi';
 
 export const configValidationSchema = Joi.object({
+  NODE_ENV: Joi.string()
+    .valid('development', 'production', 'staging', 'test')
+    .default('development'),
   PORT: Joi.number().default(3000),
   DB_HOST: Joi.string().required(),
   DB_PORT: Joi.number().required(),
@@ -15,8 +18,20 @@ export const configValidationSchema = Joi.object({
   MAIL_ENABLED: Joi.boolean().default(false),
   MAIL_HOST: Joi.string().required(),
   MAIL_PORT: Joi.number().required(),
-  MAIL_USER: Joi.string().required(),
-  MAIL_PASS: Joi.string().required(),
+  MAIL_USER: Joi.string()
+    .required()
+    .when('NODE_ENV', {
+      is: 'development',
+      then: Joi.string().optional().allow(''),
+      otherwise: Joi.string().required(),
+    }),
+  MAIL_PASS: Joi.string()
+    .required()
+    .when('NODE_ENV', {
+      is: 'development',
+      then: Joi.string().optional().allow(''),
+      otherwise: Joi.string().required(),
+    }),
   MAIL_SECURE: Joi.boolean().default(false),
   MAIL_FROM: Joi.string().default(
     '"Soporte Mailly" <soporte.tecnico@mailly.com>',

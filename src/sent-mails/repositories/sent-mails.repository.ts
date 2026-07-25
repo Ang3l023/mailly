@@ -3,10 +3,22 @@ import { BaseRepository } from '../../common/repositories/base.repository';
 import { SentMail } from '../../database/entities/sent-mail.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Client } from '../../database/entities/client.entity';
 
 @Injectable()
 export class SentMailsRepository extends BaseRepository<SentMail> {
   constructor(@InjectRepository(SentMail) repository: Repository<SentMail>) {
     super(repository);
+  }
+
+  async findByClient(client: Client): Promise<SentMail[]> {
+    return await this.repository.find({ where: { client } });
+  }
+
+  async findOneByIdAndClient(
+    id: number,
+    client: Client,
+  ): Promise<SentMail | null> {
+    return await this.repository.findOne({ where: { client, id } });
   }
 }

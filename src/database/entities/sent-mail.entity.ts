@@ -23,10 +23,13 @@ export class SentMail extends BaseEntity {
   subject!: string;
 
   @Column({ nullable: false })
-  body!: string;
+  template!: string;
 
-  @Column({ default: null, name: 'attached_file' })
+  @Column({ default: null, name: 'attached_file', nullable: true })
   attachedFile?: string;
+
+  @Column({ nullable: true, default: null })
+  params?: string;
 
   @Column({
     enum: EStatusSentMail,

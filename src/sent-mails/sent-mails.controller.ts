@@ -1,34 +1,40 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { SentMailsService } from './sent-mails.service';
 import { CreateSentMailDto } from './dto/create-sent-mail.dto';
-import { UpdateSentMailDto } from './dto/update-sent-mail.dto';
+import { ClientMaillyGuard } from '../common/guards/client-mailly.guard';
+import { CurrentClient } from '../common/decorators/current-client.decorator';
 
 @Controller('sent-mails')
+@UseGuards(ClientMaillyGuard)
 export class SentMailsController {
   constructor(private readonly sentMailsService: SentMailsService) {}
 
   @Post()
-  create(@Body() createSentMailDto: CreateSentMailDto) {
-    return this.sentMailsService.create(createSentMailDto);
+  create(
+    @Body() createSentMailDto: CreateSentMailDto,
+    @CurrentClient('id') clientId: number,
+  ) {
+    return this.sentMailsService.create(createSentMailDto, clientId);
   }
 
   @Get()
-  findAll() {
-    return this.sentMailsService.findAll();
+  findAll(@CurrentClient('id') clientId: number) {
+    return this.sentMailsService.findAll(clientId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.sentMailsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSentMailDto: UpdateSentMailDto) {
-    return this.sentMailsService.update(+id, updateSentMailDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sentMailsService.remove(+id);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentClient('id') clientId: number,
+  ) {
+    return this.sentMailsService.findOne(id, clientId);
   }
 }

@@ -2,6 +2,8 @@ import { Column, Entity, OneToMany } from 'typeorm';
 import { Log } from './log.entity';
 import { SentMail } from './sent-mail.entity';
 import { BaseEntity } from './base.entity';
+import { Exclude } from 'class-transformer';
+import { Template } from './template.entity';
 
 @Entity({ name: 'clients' })
 export class Client extends BaseEntity {
@@ -15,6 +17,7 @@ export class Client extends BaseEntity {
   senderDefault?: string;
 
   @Column({ nullable: false, default: true })
+  @Exclude()
   enabled!: boolean;
 
   @OneToMany(() => SentMail, (sentMail) => sentMail.client)
@@ -22,4 +25,7 @@ export class Client extends BaseEntity {
 
   @OneToMany(() => Log, (log) => log.client)
   logs?: Log[];
+
+  @OneToMany(() => Template, (template) => template.client)
+  templates?: Template[];
 }

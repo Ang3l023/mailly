@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Client } from './entities/client.entity';
 import { SentMail } from './entities/sent-mail.entity';
 import { Log } from './entities/log.entity';
+import { Template } from './entities/template.entity';
 
 @Global()
 @Module({
@@ -20,7 +21,7 @@ import { Log } from './entities/log.entity';
         database: configService.get<string>('database.name'),
         synchronize: configService.get<boolean>('database.synchronize'),
         logging: configService.get<boolean>('database.logging'),
-        entities: [Client, SentMail, Log],
+        entities: [Client, SentMail, Log, Template],
       }),
       inject: [ConfigService],
     }),

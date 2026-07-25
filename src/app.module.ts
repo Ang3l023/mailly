@@ -6,6 +6,8 @@ import { configValidationSchema } from './config/config.validation';
 import { ClientsModule } from './clients/clients.module';
 import { LogsModule } from './logs/logs.module';
 import { SentMailsModule } from './sent-mails/sent-mails.module';
+import { MailsModule } from './mails/mails.module';
+import { TemplatesModule } from './templates/templates.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { SentMailsModule } from './sent-mails/sent-mails.module';
     ClientsModule,
     LogsModule,
     SentMailsModule,
+    MailsModule,
+    TemplatesModule,
   ],
   controllers: [],
   providers: [],
