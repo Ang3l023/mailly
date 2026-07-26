@@ -48,7 +48,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         userAgent,
         client: client as undefined,
         metadata: {
-          statusCode: status,
+          statusCode: serialized.statusCode,
           path: request.url,
           method: request.method,
           body: this.sanitizeBody(request.body),

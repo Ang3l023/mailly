@@ -4,16 +4,29 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { ValidationException } from './exceptions/validation.exception';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(
     new ValidationPipe({
-      skipMissingProperties: true,
       transform: true,
-      skipNullProperties: true,
       whitelist: true,
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+      stopAtFirstError: false,
+      exceptionFactory: (errors) => {
+        const messages = errors.flatMap((error) =>
+          Object.values(error.constraints || {}),
+        );
+
+        return new ValidationException(messages, 'DTO_VALIDATION_ERROR', {
+          errors,
+        });
+      },
     }),
   );
 
