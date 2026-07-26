@@ -1,9 +1,9 @@
 import { Global, Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientsService } from './clients.service';
 import { ClientsController } from './clients.controller';
-import { Client } from '../database/entities/client.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientsRepository } from './repositories/clients.repository';
+import { Client } from '../../database/entities/client.entity';
 
 @Global()
 @Module({

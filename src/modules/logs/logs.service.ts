@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { LogsRepository } from './repositories/logs.repository';
-import { ELogLevel } from '../common/enums/logs/log-level.enum';
-import { Client } from '../database/entities/client.entity';
-import { SentMail } from '../database/entities/sent-mail.entity';
+import { ELogLevel } from '../../common/enums/logs/log-level.enum';
+import { Client } from '../../database/entities/client.entity';
+import { SentMail } from '../../database/entities/sent-mail.entity';
 
 export interface CreateLogDto {
   level?: ELogLevel;

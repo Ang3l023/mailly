@@ -3,15 +3,16 @@ import { ConfigModule } from '@nestjs/config';
 import configSchema from './config/config.schema';
 import { DatabaseModule } from './database/database.module';
 import { configValidationSchema } from './config/config.validation';
-import { ClientsModule } from './clients/clients.module';
-import { LogsModule } from './logs/logs.module';
-import { SentMailsModule } from './sent-mails/sent-mails.module';
-import { MailsModule } from './mails/mails.module';
-import { TemplatesModule } from './templates/templates.module';
 import { RequestContextMiddleware } from './common/middlewares/request-context.middleware';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { ClientsModule } from './modules/clients/clients.module';
+import { LogsModule } from './modules/logs/logs.module';
+import { SentMailsModule } from './modules/sent-mails/sent-mails.module';
+import { MailsModule } from './modules/mails/mails.module';
+import { TemplatesModule } from './modules/templates/templates.module';
+import { DynamicValidationModule } from './modules/validation/dynamic-validation.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
     SentMailsModule,
     MailsModule,
     TemplatesModule,
+    DynamicValidationModule,
   ],
   controllers: [],
   providers: [

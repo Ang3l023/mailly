@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Client } from '../../database/entities/client.entity';
-import { BaseRepository } from '../../common/repositories/base.repository';
 import { DataSource, Repository } from 'typeorm';
+import { BaseRepository } from '../../../common/repositories/base.repository';
+import { Client } from '../../../database/entities/client.entity';
 
 @Injectable()
 export class ClientsRepository extends BaseRepository<Client> {

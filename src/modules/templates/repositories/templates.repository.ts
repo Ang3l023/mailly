@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository } from '../../common/repositories/base.repository';
-import { Template } from '../../database/entities/template.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, FindOptionsRelations, Repository } from 'typeorm';
-import { Client } from '../../database/entities/client.entity';
+import { BaseRepository } from '../../../common/repositories/base.repository';
+import { Template } from '../../../database/entities/template.entity';
+import { Client } from '../../../database/entities/client.entity';
 
 @Injectable()
 export class TemplatesRepository extends BaseRepository<Template> {

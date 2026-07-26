@@ -1,4 +1,4 @@
-import { Client } from '../../database/entities/client.entity';
+import { Client } from '../../../database/entities/client.entity';
 import {
   IsArray,
   IsBase64,

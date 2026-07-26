@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common';
 import { SentMailsService } from './sent-mails.service';
 import { CreateSentMailDto } from './dto/create-sent-mail.dto';
-import { ClientMaillyGuard } from '../common/guards/client-mailly.guard';
-import { CurrentClient } from '../common/decorators/current-client.decorator';
+import { ClientMaillyGuard } from '../../common/guards/client-mailly.guard';
+import { CurrentClient } from '../../common/decorators/current-client.decorator';
 
 @Controller('sent-mails')
 @UseGuards(ClientMaillyGuard)

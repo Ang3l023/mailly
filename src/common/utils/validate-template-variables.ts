@@ -4,8 +4,8 @@ import {
   VariableToValidate,
   ValidationError,
 } from '../../types/variable-validation.types';
-import { EValidationRuleType } from '../../common/enums/variable/validation-rule-type.enum';
-import { compareDatesOnly, parseDate } from '../../common/utils/date.utils';
+import { EValidationRuleType } from '../enums/variable/validation-rule-type.enum';
+import { compareDatesOnly, parseDate } from './date.utils';
 
 /**
  * Valida los valores proporcionados contra las reglas de las variables de una plantilla.

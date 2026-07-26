@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ClientsRepository } from './repositories/clients.repository';
-import { Client } from '../database/entities/client.entity';
-import { NotFoundException } from '../exceptions/not-found.exception';
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { Client } from '../../database/entities/client.entity';
 
 @Injectable()
 export class ClientsService {

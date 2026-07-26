@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailsService } from './mails.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { IConfigSchema } from '../common/interfaces/config.interface';
+import { IConfigSchema } from '../../common/interfaces/config.interface';
 
 @Module({
   imports: [

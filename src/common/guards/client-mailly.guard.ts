@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { ClientsService } from '../../clients/clients.service';
 import { requestContext } from '../context/request-context';
 import { UnauthorizedException } from '../../exceptions/unauthorized.exception';
+import { ClientsService } from '../../modules/clients/clients.service';
 
 @Injectable()
 export class ClientMaillyGuard implements CanActivate {

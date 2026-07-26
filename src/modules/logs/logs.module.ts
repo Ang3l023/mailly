@@ -1,8 +1,8 @@
 import { Global, Module } from '@nestjs/common';
-import { LogsService } from './logs.service';
-import { Log } from '../database/entities/log.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { LogsService } from './logs.service';
 import { LogsRepository } from './repositories/logs.repository';
+import { Log } from '../../database/entities/log.entity';
 
 @Global()
 @Module({

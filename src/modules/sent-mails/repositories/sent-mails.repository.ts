@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository } from '../../common/repositories/base.repository';
-import { SentMail } from '../../database/entities/sent-mail.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { Client } from '../../database/entities/client.entity';
+import { BaseRepository } from '../../../common/repositories/base.repository';
+import { SentMail } from '../../../database/entities/sent-mail.entity';
+import { Client } from '../../../database/entities/client.entity';
 
 @Injectable()
 export class SentMailsRepository extends BaseRepository<SentMail> {

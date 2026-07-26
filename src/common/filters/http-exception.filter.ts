@@ -8,11 +8,11 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { LogsService } from '../../logs/logs.service';
 import { getRequestContext } from '../context/request-context';
 import { ELogLevel } from '../enums/logs/log-level.enum';
 import { BaseException } from '../../exceptions/base.exception';
 import { IErrorResponse } from '../interfaces/error-response.interface';
+import { LogsService } from '../../modules/logs/logs.service';
 
 @Catch()
 @Injectable()

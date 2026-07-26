@@ -2,16 +2,16 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreateSentMailDto } from './dto/create-sent-mail.dto';
 import { SentMailsRepository } from './repositories/sent-mails.repository';
-import { EStatusSentMail } from '../common/enums/sent-mail/status.enum';
 import { ClientsService } from '../clients/clients.service';
 import { MailsService } from '../mails/mails.service';
-import { IConfigSchema } from '../common/interfaces/config.interface';
 import { TemplatesService } from '../templates/templates.service';
 import { ISendMailCustom } from '../mails/interfaces/send-mail-custom.interface';
-import { SentMail } from '../database/entities/sent-mail.entity';
-import { validateTemplateVariables } from '../templates/utils/validate-template-variables';
-import { Client } from '../database/entities/client.entity';
-import { NotFoundException } from '../exceptions/not-found.exception';
+import { IConfigSchema } from '../../../dist/common/interfaces/config.interface';
+import { SentMail } from '../../database/entities/sent-mail.entity';
+import { NotFoundException } from '../../exceptions/not-found.exception';
+import { Client } from '../../database/entities/client.entity';
+import { EStatusSentMail } from '../../common/enums/sent-mail/status.enum';
+import { validateTemplateVariables } from '../../common/utils/validate-template-variables';
 
 @Injectable()
 export class SentMailsService {

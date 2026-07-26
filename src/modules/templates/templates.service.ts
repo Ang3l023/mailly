@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { TemplatesRepository } from './repositories/templates.repository';
 import { ClientsService } from '../clients/clients.service';
-import { Template } from '../database/entities/template.entity';
-import { NotFoundException } from '../exceptions/not-found.exception';
+import { Template } from '../../database/entities/template.entity';
+import { NotFoundException } from '../../exceptions/not-found.exception';
 
 @Injectable()
 export class TemplatesService {
