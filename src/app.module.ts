@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import configSchema from './config/config.schema';
 import { DatabaseModule } from './database/database.module';
@@ -8,6 +8,10 @@ import { LogsModule } from './logs/logs.module';
 import { SentMailsModule } from './sent-mails/sent-mails.module';
 import { MailsModule } from './mails/mails.module';
 import { TemplatesModule } from './templates/templates.module';
+import { RequestContextMiddleware } from './common/middlewares/request-context.middleware';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 @Module({
   imports: [
@@ -24,6 +28,19 @@ import { TemplatesModule } from './templates/templates.module';
     TemplatesModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseTransformInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
+  ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestContextMiddleware).forRoutes('*path');
+  }
+}

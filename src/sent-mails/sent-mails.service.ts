@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreateSentMailDto } from './dto/create-sent-mail.dto';
 import { SentMailsRepository } from './repositories/sent-mails.repository';
@@ -16,6 +11,7 @@ import { ISendMailCustom } from '../mails/interfaces/send-mail-custom.interface'
 import { SentMail } from '../database/entities/sent-mail.entity';
 import { validateTemplateVariables } from '../templates/utils/validate-template-variables';
 import { Client } from '../database/entities/client.entity';
+import { NotFoundException } from '../exceptions/not-found.exception';
 
 @Injectable()
 export class SentMailsService {
@@ -180,8 +176,10 @@ export class SentMailsService {
         }
 
         return {
-          code: sentMailCode,
-          status: sentMailStatus,
+          data: {
+            code: sentMailCode,
+            status: sentMailStatus,
+          },
           message: sentMailMessageError,
         };
       },

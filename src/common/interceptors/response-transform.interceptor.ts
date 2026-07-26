@@ -3,38 +3,62 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
+  HttpStatus,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-
-export interface Response<T> {
-  success: boolean;
-  statusCode: number;
-  data: T;
-  timestamp: string;
-}
+import { Request, Response } from 'express';
+import { SuccessResponse } from '../interfaces/success-response.interface';
+import { getRequestContext } from '../context/request-context';
 
 @Injectable()
 export class ResponseTransformInterceptor<T> implements NestInterceptor<
   T,
-  Response<T>
+  SuccessResponse<T>
 > {
   intercept(
     context: ExecutionContext,
     next: CallHandler,
-  ): Observable<Response<T>> {
-    const response = context.switchToHttp().getResponse<Request>();
-    const statusCode = response.statusCode!;
+  ): Observable<SuccessResponse<T>> {
+    const request = context.switchToHttp().getRequest<Request>();
+    const statusCode =
+      context.switchToHttp().getResponse<Response>().statusCode ||
+      HttpStatus.OK;
+
+    const { requestId } = getRequestContext();
 
     return next.handle().pipe(
-      map<any, Response<T>>((data) => ({
-        success: true,
-        statusCode,
+      map<any, SuccessResponse<T>>((data: any) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        data: data ?? null, // Si el endpoint devuelve nada o void, envía null
-        timestamp: new Date().toISOString(),
-      })),
+        const isAlreadyFormatted =
+          data &&
+          typeof data === 'object' &&
+          'data' in data &&
+          'message' in data;
+
+        if (isAlreadyFormatted) {
+          return {
+            statusCode,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            message: data.message || 'Operación exitosa',
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            data: data.data,
+            requestId,
+            timestamp: new Date().toISOString(),
+            path: request.url,
+          };
+        }
+
+        return {
+          statusCode,
+          message: 'Operación exitosa',
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          data,
+          requestId,
+          timestamp: new Date().toISOString(),
+          path: request.url,
+        };
+      }),
     );
   }
 }

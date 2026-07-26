@@ -1,11 +1,8 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { ClientsService } from '../../clients/clients.service';
+import { requestContext } from '../context/request-context';
+import { UnauthorizedException } from '../../exceptions/unauthorized.exception';
 
 @Injectable()
 export class ClientMaillyGuard implements CanActivate {
@@ -24,6 +21,11 @@ export class ClientMaillyGuard implements CanActivate {
 
     if (!client) {
       throw new UnauthorizedException('Invalid API key');
+    }
+
+    const currentContext = requestContext.getStore();
+    if (currentContext) {
+      currentContext.clientId = client.id;
     }
 
     request.client = client;

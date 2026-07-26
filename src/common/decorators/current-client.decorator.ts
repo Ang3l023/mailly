@@ -1,18 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import {
-  createParamDecorator,
-  ExecutionContext,
-  BadRequestException,
-} from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { Client } from '../../database/entities/client.entity';
+import { ValidationException } from '../../exceptions/validation.exception';
 
 export const CurrentClient = createParamDecorator(
   (propertyPath: string | undefined, ctx: ExecutionContext) => {
     const request: Request = ctx.switchToHttp().getRequest();
 
     if (!request.client) {
-      throw new BadRequestException('Client not found in request');
+      throw new ValidationException('Client not found in request');
     }
 
     // Si no se pasa ninguna propiedad, devolvemos todo el objeto client
@@ -24,7 +21,7 @@ export const CurrentClient = createParamDecorator(
     const value = getNestedProperty(request.client, propertyPath);
 
     if (value === undefined) {
-      throw new BadRequestException(
+      throw new ValidationException(
         `Property "${propertyPath}" not found in client object`,
       );
     }
