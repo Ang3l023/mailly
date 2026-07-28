@@ -22,7 +22,7 @@ export class SentMailsController {
     @Body() createSentMailDto: CreateSentMailDto,
     @CurrentClient('id') clientId: number,
   ) {
-    return this.sentMailsService.create(createSentMailDto, clientId);
+    return this.sentMailsService.sendMail(createSentMailDto, clientId);
   }
 
   @Get()

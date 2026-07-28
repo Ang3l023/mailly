@@ -1,17 +1,17 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreateSentMailDto } from './dto/create-sent-mail.dto';
 import { SentMailsRepository } from './repositories/sent-mails.repository';
 import { ClientsService } from '../clients/clients.service';
 import { MailsService } from '../mails/mails.service';
 import { TemplatesService } from '../templates/templates.service';
-import { ISendMailCustom } from '../mails/interfaces/send-mail-custom.interface';
-import { IConfigSchema } from '../../../dist/common/interfaces/config.interface';
+import { IConfigSchema } from '../../common/interfaces/config.interface';
 import { SentMail } from '../../database/entities/sent-mail.entity';
 import { NotFoundException } from '../../exceptions/not-found.exception';
-import { Client } from '../../database/entities/client.entity';
-import { EStatusSentMail } from '../../common/enums/sent-mail/status.enum';
 import { validateTemplateVariables } from '../../common/utils/validate-template-variables';
+import { ValidationException } from '../../exceptions/validation.exception';
+import { EStatusSentMail } from '../../common/enums/sent-mail/status.enum';
+import { SendMailDto } from '../mails/dto/send-mail.dto';
 
 @Injectable()
 export class SentMailsService {
@@ -21,6 +21,7 @@ export class SentMailsService {
     private readonly configService: ConfigService<IConfigSchema>,
     private readonly sentMailsRepository: SentMailsRepository,
     private readonly clientService: ClientsService,
+    @Inject(forwardRef(() => MailsService))
     private readonly mailsService: MailsService,
     private readonly templateService: TemplatesService,
   ) {}
@@ -28,7 +29,40 @@ export class SentMailsService {
   async create(createSentMailDto: CreateSentMailDto, clientId: number) {
     const client = await this.clientService.findById(clientId);
 
-    return await this.sendMail(createSentMailDto, client);
+    const template = await this.templateService.findByCodeAndClient(
+      createSentMailDto.template,
+      clientId,
+    );
+
+    if (!createSentMailDto.subject && !template.subject) {
+      throw new ValidationException(`No valid subject has been provided.`);
+    }
+
+    const {
+      from = client.senderDefault ||
+        this.configService.get<string>('mail.from', { infer: true })!,
+      to,
+      subject,
+      params,
+      cc,
+      bcc,
+    } = createSentMailDto;
+
+    const sent = await this.sentMailsRepository.create({
+      client,
+      from,
+      to,
+      cc: Array.isArray(cc) ? cc.join(',') : cc,
+      bcc: Array.isArray(bcc) ? bcc.join(',') : bcc,
+      subject,
+      html: template.html,
+      template: template,
+      status: EStatusSentMail.SENT,
+      errorMessage: null,
+      metadata: params ? JSON.stringify(params) : null,
+    });
+
+    return sent;
   }
 
   async findAll(clientId: number): Promise<SentMail[]> {
@@ -72,117 +106,82 @@ export class SentMailsService {
     }
   }
 
-  async sendMail(dto: CreateSentMailDto, client: Client) {
-    return await this.sentMailsRepository.runInTransaction(
-      async (queryRunner) => {
-        const { id: clientId } = client;
-        const { template: templateCode } = dto;
+  async sendMail(dto: CreateSentMailDto, clientId: number) {
+    const client = await this.clientService.findById(clientId);
 
-        const template = await this.templateService.findByCodeAndClient(
-          templateCode,
-          clientId,
-        );
+    const { template: templateCode } = dto;
 
-        if (!dto.subject && !template.subject) {
-          throw new BadRequestException(`No valid subject has been provided.`);
-        }
+    const template = await this.templateService.findByCodeAndClient(
+      templateCode,
+      clientId,
+    );
 
-        let sentMailId: number | null = null;
-        let sentMailCode: string | null = null;
-        let sentMailStatus: EStatusSentMail | null = null;
-        let sentMailMessageError: string | null = null;
-        const { from, to, subject = template.subject!, params } = dto;
+    if (!dto.subject && !template.subject) {
+      throw new ValidationException(`No valid subject has been provided.`);
+    }
 
-        const sendMailDto: ISendMailCustom = {
-          to,
-          subject,
-          from,
-          params,
-        };
+    const {
+      from = client.senderDefault ||
+        this.configService.get<string>('mail.from', { infer: true })!,
+      to,
+      subject = template.subject!,
+      params,
+      cc,
+      bcc,
+      context,
+      text,
+    } = dto;
 
-        if (template.file) {
-          sendMailDto.template = template.filename;
-        } else if (template.html) {
-          sendMailDto.html = template.html;
-        } else {
-          throw new NotFoundException(
-            `Not found a valid template with ID: ${templateCode}`,
-          );
-        }
+    const sendMailDto: SendMailDto = {
+      from,
+      to,
+      cc,
+      bcc,
+      subject,
+      context,
+      text,
+      metadata: params,
+    };
 
-        const paramsIsValid = validateTemplateVariables(
-          template.variables,
-          params || {},
-        );
+    if (template.file) {
+      sendMailDto.template = template.filename;
+    } else if (template.html) {
+      sendMailDto.html = template.html;
+    } else {
+      throw new NotFoundException(
+        `Not found a valid template with ID: ${templateCode}`,
+      );
+    }
 
-        if (!paramsIsValid.isValid) {
-          throw new BadRequestException({
-            message: `There are invalid parameters.`,
-            errors: paramsIsValid.errors,
-          });
-        }
+    const paramsIsValid = validateTemplateVariables(
+      template.variables,
+      params || {},
+    );
 
-        try {
-          const sentMailDto = queryRunner.manager.create(SentMail, {
-            from:
-              from ||
-              client.senderDefault ||
-              this.configService.get<string>('mail.from', { infer: true }),
-            to,
-            subject,
-            client,
-            params: params ? JSON.stringify(params) : undefined,
-            template: sendMailDto.template || sendMailDto.html,
-          });
+    if (!paramsIsValid.isValid) {
+      throw new ValidationException(
+        `There are invalid parameters.`,
+        'VALIDATION_PARAMS_TEMPLATE_ERROR',
+        {
+          details: paramsIsValid.errors,
+        },
+      );
+    }
 
-          const sentMail = await queryRunner.manager.save(sentMailDto);
+    const sended = await this.mailsService.send(sendMailDto);
 
-          sentMailId = sentMail.id;
-          sentMailCode = sentMail.code;
-          sentMailStatus = sentMail.status;
-          sendMailDto.code = sentMail.code;
-        } catch (error) {
-          this.logger.error(
-            `Error while saving sentMail Entity in database`,
-            error,
-          );
-          throw new BadRequestException(
-            `An error has been ocurred, please try again in a few minutes`,
-          );
-        }
+    if (!sended.queued) {
+      const sent = await this.create(dto, clientId);
 
-        try {
-          await this.mailsService.sendMailCustom(sendMailDto);
-          sentMailStatus = EStatusSentMail.SENT;
-        } catch (error) {
-          this.logger.error(
-            `An error has been ocurred while sending mail to ${to}`,
-            error,
-          );
-          sentMailStatus = EStatusSentMail.ERROR;
-          sentMailMessageError = error as string;
-        }
+      return {
+        message: `The email has been successfully sent to the email: ${to}`,
+        data: sent,
+      };
+    }
 
-        try {
-          await queryRunner.manager.update(SentMail, sentMailId, {
-            status: sentMailStatus,
-            messageError: sentMailMessageError || undefined,
-          });
-        } catch (error) {
-          this.logger.error(
-            `An error has been ocurred while updating status of a sent mail`,
-            error,
-          );
-        }
-
-        return {
-          data: {
-            code: sentMailCode,
-            status: sentMailStatus,
-          },
-          message: sentMailMessageError,
-        };
-      },
+    throw new ValidationException(
+      `An error occurred while attempting to send the email to ${to}; a retry will be attempted in a few minutes.`,
+      'MAIL_SEND_FAILED',
     );
   }
 }

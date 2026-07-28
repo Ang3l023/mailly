@@ -3,6 +3,7 @@ import {
   DeepPartial,
   FindManyOptions,
   FindOneOptions,
+  FindOptionsRelations,
   FindOptionsWhere,
   QueryRunner,
   Repository,
@@ -36,9 +37,13 @@ export abstract class BaseRepository<
     return this.repository.find(options);
   }
 
-  async findById(id: number): Promise<T | null> {
+  async findById(
+    id: number,
+    relations?: FindOptionsRelations<T>,
+  ): Promise<T | null> {
     return this.repository.findOne({
       where: { id } as FindOptionsWhere<T>,
+      relations,
     });
   }
 

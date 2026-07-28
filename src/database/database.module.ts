@@ -8,6 +8,7 @@ import { Template } from './entities/template.entity';
 import { Variable } from './entities/variable.entity';
 import { VariableOptions } from './entities/variable-options';
 import { VariableRules } from './entities/variable-rules';
+import { MailQueue } from './entities/mail-queue.entity';
 
 @Global()
 @Module({
@@ -26,6 +27,7 @@ import { VariableRules } from './entities/variable-rules';
         logging: configService.get<boolean>('database.logging'),
         entities: [
           Client,
+          MailQueue,
           SentMail,
           Log,
           Template,

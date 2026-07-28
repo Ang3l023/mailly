@@ -31,4 +31,21 @@ export class TemplatesService {
 
     return template;
   }
+
+  async findByFileNameAndClient(
+    filename: string,
+    clientId: number,
+  ): Promise<Template> {
+    await this.clientService.findById(clientId);
+
+    const template = await this.templateRepository.findOne({
+      where: { filename, client: { id: clientId } },
+    });
+
+    if (!template) {
+      throw new NotFoundException(`Not found template with Name:${filename}`);
+    }
+
+    return template;
+  }
 }

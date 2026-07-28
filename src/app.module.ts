@@ -13,6 +13,8 @@ import { SentMailsModule } from './modules/sent-mails/sent-mails.module';
 import { MailsModule } from './modules/mails/mails.module';
 import { TemplatesModule } from './modules/templates/templates.module';
 import { DynamicValidationModule } from './modules/validation/dynamic-validation.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { QueueMailModule } from './modules/queue-mail/queue-mail.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { DynamicValidationModule } from './modules/validation/dynamic-validation
     MailsModule,
     TemplatesModule,
     DynamicValidationModule,
+    ScheduleModule.forRoot(),
+    QueueMailModule,
   ],
   controllers: [],
   providers: [

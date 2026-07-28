@@ -1,3 +1,4 @@
+import type { DeepPartial } from 'typeorm';
 import { Client } from '../../../database/entities/client.entity';
 import {
   IsArray,
@@ -14,7 +15,7 @@ import {
 
 export class CreateSentMailDto {
   @IsOptional()
-  client?: Client;
+  client?: DeepPartial<Client>;
 
   @IsOptional()
   @IsString()
@@ -24,6 +25,14 @@ export class CreateSentMailDto {
   @IsString()
   @IsEmail()
   to!: string;
+
+  @IsEmail({}, { each: true })
+  @IsOptional()
+  cc?: string | string[];
+
+  @IsEmail({}, { each: true })
+  @IsOptional()
+  bcc?: string | string[];
 
   @IsOptional()
   @IsString()
@@ -38,6 +47,14 @@ export class CreateSentMailDto {
   @IsObject({ each: true })
   @ValidateNested({ each: true })
   attachedFiles?: AttachedFileDto[];
+
+  @IsObject()
+  @IsOptional()
+  context?: Record<string, any>;
+
+  @IsString()
+  @IsOptional()
+  text?: string;
 
   @IsOptional()
   @IsObject()

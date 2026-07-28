@@ -1,11 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailsService } from './mails.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { IConfigSchema } from '../../common/interfaces/config.interface';
+import { join } from 'path';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
+import { TemplatesModule } from '../templates/templates.module';
+import { QueueMailModule } from '../queue-mail/queue-mail.module';
+import { SentMailsModule } from '../sent-mails/sent-mails.module';
 
+@Global()
 @Module({
   imports: [
+    ConfigModule,
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService<IConfigSchema>) => ({
@@ -21,9 +28,19 @@ import { IConfigSchema } from '../../common/interfaces/config.interface';
         defaults: {
           from: config.get<string>('mail.from', { infer: true }),
         },
+        template: {
+          dir: join(__dirname, 'templates'),
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
       }),
       inject: [ConfigService],
     }),
+    TemplatesModule,
+    QueueMailModule,
+    SentMailsModule,
   ],
   providers: [MailsService],
   exports: [MailsService],

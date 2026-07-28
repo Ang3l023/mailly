@@ -5,10 +5,14 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { Client } from './client.entity';
 import { BaseEntity } from './base.entity';
 import { Variable } from './variable.entity';
+import { MailQueue } from './mail-queue.entity';
+import { SentMail } from './sent-mail.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Template extends BaseEntity {
@@ -29,12 +33,15 @@ export class Template extends BaseEntity {
   description?: string | null;
 
   @Column({ nullable: false })
+  @Exclude()
   filename!: string;
 
   @Column({ nullable: true, default: null, type: 'varchar' })
+  @Exclude()
   html?: string;
 
   @Column({ nullable: true, default: null })
+  @Exclude()
   file?: string;
 
   @Column({ default: true })
@@ -49,4 +56,10 @@ export class Template extends BaseEntity {
     inverseJoinColumn: { name: 'variable_id', referencedColumnName: 'id' },
   })
   variables!: Variable[];
+
+  @OneToMany(() => SentMail, (queue) => queue.template)
+  sentMails?: SentMail[];
+
+  @OneToMany(() => MailQueue, (queue) => queue.template)
+  queueMails?: MailQueue[];
 }
