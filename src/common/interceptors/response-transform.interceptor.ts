@@ -49,6 +49,24 @@ export class ResponseTransformInterceptor<T> implements NestInterceptor<
           };
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const isPaginatedFormatted: boolean =
+          data && typeof data === 'object' && 'data' in data && 'meta' in data;
+
+        if (isPaginatedFormatted) {
+          return {
+            statusCode,
+            message: 'Operación exitosa',
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            data: data.data,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            meta: data.meta || {},
+            requestId,
+            timestamp: new Date().toISOString(),
+            path: request.url,
+          };
+        }
+
         return {
           statusCode,
           message: 'Operación exitosa',

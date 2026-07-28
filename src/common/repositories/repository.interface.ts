@@ -1,6 +1,14 @@
-import { DeepPartial, FindManyOptions, FindOneOptions } from 'typeorm';
+import {
+  DeepPartial,
+  FindManyOptions,
+  FindOneOptions,
+  QueryRunner,
+} from 'typeorm';
+import { PaginateOptions } from '../interfaces/paginate.interface';
+import { PaginatedResult } from '../interfaces/paginated-result.interface';
+import { BaseEntity } from '../../database/entities/base.entity';
 
-export interface IRepository<T> {
+export interface IRepository<T extends BaseEntity> {
   create(data: DeepPartial<T>): Promise<T>;
 
   findAll(options?: FindManyOptions<T>): Promise<T[]>;
@@ -14,4 +22,10 @@ export interface IRepository<T> {
   delete(id: number): Promise<void>;
 
   exists(id: number): Promise<boolean>;
+
+  findPaginated(options: PaginateOptions<T>): Promise<PaginatedResult<T>>;
+
+  runInTransaction<I>(
+    work: (queryRunner: QueryRunner) => Promise<I>,
+  ): Promise<I>;
 }

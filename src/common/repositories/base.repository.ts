@@ -1,14 +1,19 @@
 import {
+  Between,
   DataSource,
   DeepPartial,
   FindManyOptions,
   FindOneOptions,
+  FindOptionsOrder,
   FindOptionsRelations,
+  FindOptionsSelect,
   FindOptionsWhere,
+  LessThanOrEqual,
+  Like,
+  MoreThanOrEqual,
   QueryRunner,
   Repository,
 } from 'typeorm';
-
 import {
   BadRequestException,
   ConflictException,
@@ -19,6 +24,9 @@ import {
 
 import { IRepository } from './repository.interface';
 import { BaseEntity } from 'src/database/entities/base.entity';
+import { PaginateOptions } from '../interfaces/paginate.interface';
+import { PaginatedResult } from '../interfaces/paginated-result.interface';
+import { endOfDay, startOfDay } from '../helpers/timezone.helper';
 
 export abstract class BaseRepository<
   T extends BaseEntity,
@@ -35,6 +43,109 @@ export abstract class BaseRepository<
 
   async findAll(options?: FindManyOptions<T>): Promise<T[]> {
     return this.repository.find(options);
+  }
+
+  async findPaginated(
+    options: PaginateOptions<T>,
+  ): Promise<PaginatedResult<T>> {
+    const {
+      pagination,
+      where = {},
+      relations,
+      select,
+      searchFields = [],
+    } = options;
+
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    // Construcción del where con búsqueda opcional
+    let finalWhere: FindOptionsWhere<T> | FindOptionsWhere<T>[] = where;
+
+    if (pagination.search && searchFields.length > 0) {
+      const searchConditions = searchFields.map((field) => ({
+        [field]: Like(`%${pagination.search}%`),
+      })) as FindOptionsWhere<T>[];
+
+      // Si ya había un where, lo combinamos con OR de búsqueda
+      finalWhere = Array.isArray(where)
+        ? // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          [...where, ...searchConditions]
+        : Object.keys(where).length > 0
+          ? [where, ...searchConditions]
+          : searchConditions;
+    }
+
+    if (pagination.dateFrom || pagination.dateTo) {
+      const dateField = (pagination.dateField || 'createdAt') as keyof Omit<
+        T,
+        'id'
+      >;
+      const dateFilter: FindOptionsWhere<T> = {};
+
+      if (pagination.dateFrom && pagination.dateTo) {
+        // Rango completo (incluye todo el día final)
+        Object.assign(dateFilter, {
+          [dateField]: Between(
+            startOfDay(pagination.dateFrom),
+            endOfDay(pagination.dateTo),
+          ),
+        });
+      } else if (pagination.dateFrom) {
+        Object.assign(dateFilter, {
+          [dateField]: MoreThanOrEqual(startOfDay(pagination.dateFrom)),
+        });
+      } else if (pagination.dateTo) {
+        Object.assign(dateFilter, {
+          [dateField]: LessThanOrEqual(endOfDay(pagination.dateTo)),
+        });
+      }
+
+      // Combinamos el filtro de fecha con el where existente
+      if (Array.isArray(finalWhere)) {
+        finalWhere = finalWhere.map((condition) => ({
+          ...condition,
+          ...dateFilter,
+        }));
+      } else {
+        finalWhere = {
+          ...finalWhere,
+          ...dateFilter,
+        };
+      }
+    }
+
+    let order: FindOptionsOrder<T> = {};
+
+    if (pagination.sortBy) {
+      order = {
+        [pagination.sortBy]: pagination.sortOrder ?? 'DESC',
+      } as FindOptionsOrder<T>;
+    }
+
+    const [data, total] = await this.repository.findAndCount({
+      where: finalWhere,
+      relations,
+      select: select as FindOptionsSelect<T>,
+      order,
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
   }
 
   async findById(
