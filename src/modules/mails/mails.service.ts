@@ -6,8 +6,9 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ISendMailOptions, MailerService } from '@nestjs-modules/mailer';
-import { LogsService } from '../logs/logs.service';
 import { ConfigService } from '@nestjs/config';
+import Handlebars from 'handlebars';
+import { LogsService } from '../logs/logs.service';
 import { IConfigSchema } from '../../common/interfaces/config.interface';
 import { getRequestContext } from '../../common/context/request-context';
 import {
@@ -25,6 +26,7 @@ import {
 } from './interfaces/error-mail.interface';
 import { IProcessPendingResponse } from './interfaces/process-pending.interface';
 import { SentMailsService } from '../sent-mails/sent-mails.service';
+import { FileStorageService } from '../file-storage/file-storage.service';
 
 @Injectable()
 export class MailsService {
@@ -39,6 +41,7 @@ export class MailsService {
     private readonly templateService: TemplatesService,
     @Inject(forwardRef(() => SentMailsService))
     private readonly sentMailService: SentMailsService,
+    private readonly fileStorageService: FileStorageService,
   ) {
     this.isActive = configService.get('mail.enabled', { infer: true }) || true;
   }
@@ -94,7 +97,7 @@ export class MailsService {
               : undefined,
             metadata: {
               subject: dto.subject,
-              template: dto.template,
+              template: dto.templateCode,
               to: dto.to,
               context: dto.context || {},
               text: dto.text,
@@ -102,14 +105,17 @@ export class MailsService {
           },
         );
       }
-      if (dto.template) {
+      if (dto.fileContent) {
+        const compileTemplate = Handlebars.compile(dto.fileContent);
+
+        const html = compileTemplate(dto.metadata);
+
         await this.mailerService.sendMail({
           to: dto.to,
           cc: dto.cc,
           bcc: dto.bcc,
           subject: dto.subject,
-          template: dto.template,
-          context: dto.context || {},
+          html,
           text: dto.text,
         });
       } else {
@@ -136,7 +142,7 @@ export class MailsService {
           : undefined,
         metadata: {
           subject: dto.subject,
-          template: dto.template,
+          template: dto.templateCode,
           to: dto.to,
         },
       });
@@ -154,7 +160,7 @@ export class MailsService {
         metadata: {
           subject: dto.subject,
           to: dto.to,
-          template: dto.template,
+          template: dto.templateCode,
           params: dto.metadata,
         },
         stackTrace: handled.details,
@@ -178,8 +184,8 @@ export class MailsService {
       finalHtml = this.replaceVariablesHtml(dto.html, dto.metadata);
     }
 
-    const template = await this.templateService.findByFileNameAndClient(
-      dto.template!,
+    const template = await this.templateService.findByCodeAndClient(
+      dto.templateCode!,
       clientId!,
     );
 
@@ -206,7 +212,7 @@ export class MailsService {
       client: clientId ? ({ id: clientId } as any) : undefined,
       metadata: {
         subject: dto.subject,
-        template: dto.template,
+        template: dto.templateCode,
         to: dto.to,
         params: dto.metadata,
       },
@@ -327,18 +333,41 @@ export class MailsService {
 
     for (const mail of pending) {
       try {
+        let html = mail.html;
+
+        if (mail.html && mail.metadata && mail.metadata.length > 0) {
+          html = this.replaceVariablesHtml(
+            mail.html,
+            mail.metadata
+              ? (JSON.parse(mail.metadata) as {
+                  [name: string]: any;
+                })
+              : {},
+          );
+        }
+
+        if (mail.template && mail.template.file) {
+          const fileContent = await this.fileStorageService.getStringBuffer(
+            mail.template.file,
+          );
+
+          const compileTemplate = Handlebars.compile(fileContent);
+
+          html = compileTemplate(
+            mail.metadata
+              ? (JSON.parse(mail.metadata) as {
+                  [name: string]: any;
+                })
+              : {},
+          );
+        }
+
         await this.mailerService.sendMail({
           to: mail.to,
           cc: mail.cc || undefined,
           bcc: mail.bcc || undefined,
           subject: mail.subject,
-          html: mail.html,
-          template: mail.template ? mail.template.filename : undefined,
-          context: mail.metadata
-            ? (JSON.parse(mail.metadata) as {
-                [name: string]: any;
-              })
-            : {},
+          html,
         });
 
         mail.status = MailStatus.SENT;

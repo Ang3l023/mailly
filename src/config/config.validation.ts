@@ -36,4 +36,19 @@ export const configValidationSchema = Joi.object({
   MAIL_FROM: Joi.string().default(
     '"Soporte Mailly" <soporte.tecnico@mailly.com>',
   ),
+  TEMPLATE_STORAGE_PATH: Joi.string().required(),
+  AWS_ACCESS_KEY_ID: Joi.string().required(),
+  AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+  AWS_REGION: Joi.string().required(),
+  AWS_S3_ENDPOINT: Joi.string().required().when('NODE_ENV', {
+    is: 'development',
+    then: Joi.string().required(),
+    otherwise: Joi.string().optional(),
+  }),
+  AWS_S3_FORCE_PATH_STYLE: Joi.boolean().default(false),
+  AWS_S3_BUCKET_NAME: Joi.string().required(),
+  AWS_S3_MAX_FILE_SIZE: Joi.number().default(10485760), // 10MB
+  AWS_S3_ALLOWED_MIME_TYPES: Joi.string().default(
+    'image/jpeg,image/png,application/pdf',
+  ),
 });

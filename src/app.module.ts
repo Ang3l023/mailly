@@ -16,6 +16,8 @@ import { DynamicValidationModule } from './modules/validation/dynamic-validation
 import { ScheduleModule } from '@nestjs/schedule';
 import { QueueMailModule } from './modules/queue-mail/queue-mail.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { VariableModule } from './modules/variable/variable.module';
+import { FileStorageModule } from './modules/file-storage/file-storage.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { AdminModule } from './modules/admin/admin.module';
     ScheduleModule.forRoot(),
     QueueMailModule,
     AdminModule,
+    VariableModule,
+    FileStorageModule,
   ],
   controllers: [],
   providers: [

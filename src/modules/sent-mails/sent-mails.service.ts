@@ -12,6 +12,7 @@ import { validateTemplateVariables } from '../../common/utils/validate-template-
 import { ValidationException } from '../../exceptions/validation.exception';
 import { EStatusSentMail } from '../../common/enums/sent-mail/status.enum';
 import { SendMailDto } from '../mails/dto/send-mail.dto';
+import { FileStorageService } from '../file-storage/file-storage.service';
 
 @Injectable()
 export class SentMailsService {
@@ -24,6 +25,7 @@ export class SentMailsService {
     @Inject(forwardRef(() => MailsService))
     private readonly mailsService: MailsService,
     private readonly templateService: TemplatesService,
+    private readonly fileStorageService: FileStorageService,
   ) {}
 
   async create(createSentMailDto: CreateSentMailDto, clientId: number) {
@@ -144,7 +146,10 @@ export class SentMailsService {
     };
 
     if (template.file) {
-      sendMailDto.template = template.filename;
+      sendMailDto.templateCode = template.code;
+      sendMailDto.fileContent = await this.fileStorageService.getStringBuffer(
+        template.file,
+      );
     } else if (template.html) {
       sendMailDto.html = template.html;
     } else {

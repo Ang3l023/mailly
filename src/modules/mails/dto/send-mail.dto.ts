@@ -5,6 +5,7 @@ import {
   IsEmail,
   IsObject,
   MaxLength,
+  IsNumber,
 } from 'class-validator';
 
 export class SendMailDto {
@@ -35,9 +36,14 @@ export class SendMailDto {
   html?: string;
 
   /** Nombre de la plantilla .hbs (sin extensión) */
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  template?: string;
+  templateCode?: number;
+
+  /** Contenido del archivo adjunto (si no usas plantilla .hbs) */
+  @IsOptional()
+  @IsString()
+  fileContent?: string;
 
   /** Contexto para la plantilla Handlebars */
   @IsObject()

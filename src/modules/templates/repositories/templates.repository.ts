@@ -24,4 +24,13 @@ export class TemplatesRepository extends BaseRepository<Template> {
       relations,
     });
   }
+
+  async getNextCodeForClient(clientId: number): Promise<number> {
+    const lastTemplate = await this.repository.findOne({
+      where: { client: { id: clientId } },
+      order: { code: 'DESC' },
+    });
+
+    return lastTemplate ? lastTemplate.code + 1 : 1;
+  }
 }

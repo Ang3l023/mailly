@@ -23,4 +23,19 @@ export interface IConfigSchema {
     secure: boolean;
     from: string;
   };
+  template: {
+    storagePath: string;
+  };
+  aws: {
+    s3: {
+      accessKeyId: string;
+      secretAccessKey: string;
+      region: string;
+      endpoint?: string;
+      forcePathStyle: boolean;
+      bucketName: string;
+      maxFileSize: number;
+      allowedMimeTypes: string;
+    };
+  };
 }
