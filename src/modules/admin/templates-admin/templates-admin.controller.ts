@@ -8,11 +8,13 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TemplatesAdminService } from './templates-admin.service';
 import { CreateTemplatesAdminDto } from './dto/create-templates-admin.dto';
 import { UpdateTemplatesAdminDto } from './dto/update-templates-admin.dto';
+import { PaginationDto } from '../../../common/dto/pagination.dto';
 
 @Controller('admin/templates')
 export class TemplatesAdminController {
@@ -28,8 +30,8 @@ export class TemplatesAdminController {
   }
 
   @Get()
-  findAll() {
-    return this.templatesAdminService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.templatesAdminService.findAll(paginationDto);
   }
 
   @Get(':id')

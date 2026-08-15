@@ -11,6 +11,9 @@ import { extname } from 'path';
 import { FileStorageService } from '../file-storage/file-storage.service';
 import { FileStorageError } from '../file-storage/errors/file-storage.errors';
 import { ValidationException } from '../../exceptions/validation.exception';
+import { PaginationDto } from '../../common/dto/pagination.dto';
+import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
+import { InternalException } from '../../exceptions/internal.exception';
 
 @Injectable()
 export class TemplatesService {
@@ -234,5 +237,108 @@ export class TemplatesService {
     }
 
     return (await this.templateRepository.update(templateId, template))!;
+  }
+
+  async findPaginated(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Template>> {
+    try {
+      return await this.templateRepository.findPaginated({
+        pagination: paginationDto,
+        searchFields: ['name'],
+      });
+    } catch (error) {
+      this.logger.error(`Error Pagination`, error);
+      throw new InternalException();
+    }
+  }
+
+  async findPaginatedByClient(
+    clientId: number,
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Template>> {
+    await this.clientService.findById(clientId);
+
+    try {
+      return await this.templateRepository.findPaginated({
+        pagination: paginationDto,
+        searchFields: ['name'],
+        where: { client: { id: clientId } },
+      });
+    } catch (error) {
+      this.logger.error(`Error Pagination`, error);
+      throw new InternalException();
+    }
+  }
+
+  async findById(templateId: number): Promise<Template> {
+    const template = await this.templateRepository.findById(templateId, {
+      variables: true,
+      client: true,
+    });
+
+    if (!template) {
+      throw new NotFoundException(`Template with ID ${templateId} not found`);
+    }
+
+    return template;
+  }
+
+  async findByIdAndClient(
+    templateId: number,
+    clientId: number,
+  ): Promise<Template> {
+    await this.clientService.findById(clientId);
+
+    const template = await this.templateRepository.findOne({
+      where: { id: templateId, client: { id: clientId } },
+      relations: {
+        variables: true,
+        client: true,
+      },
+    });
+
+    if (!template || template.client.id !== clientId) {
+      throw new NotFoundException(
+        `Template with ID ${templateId} not found for client ${clientId}`,
+      );
+    }
+
+    return template;
+  }
+
+  async delete(templateId: number): Promise<Template> {
+    const template = await this.findById(templateId);
+
+    if (template.file) {
+      const exist = await this.fileStorageService.exists(template.file);
+
+      if (exist) {
+        await this.fileStorageService.delete(template.file);
+      }
+    }
+
+    await this.templateRepository.delete(templateId);
+
+    return template;
+  }
+
+  async deleteByClient(
+    templateId: number,
+    clientId: number,
+  ): Promise<Template> {
+    const template = await this.findByIdAndClient(templateId, clientId);
+
+    if (template.file) {
+      const exist = await this.fileStorageService.exists(template.file);
+
+      if (exist) {
+        await this.fileStorageService.delete(template.file);
+      }
+    }
+
+    await this.templateRepository.delete(templateId);
+
+    return template;
   }
 }
