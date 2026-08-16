@@ -56,4 +56,8 @@ export class CreateQueueMailDto {
   @IsOptional()
   @IsString()
   errorMessage?: string;
+
+  @IsNotEmpty({ each: true })
+  @IsString({ each: true })
+  attachedFiles?: string[] | null;
 }

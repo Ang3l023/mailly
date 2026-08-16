@@ -14,16 +14,16 @@ export class SentMail extends BaseEntity {
   @JoinColumn({ name: 'client_id' })
   client!: Client;
 
-  @Column({ nullable: false })
+  @Column({ default: null })
   from!: string;
 
   @Column({ nullable: false })
   to!: string;
 
-  @Column({ nullable: true, default: true, type: String })
+  @Column({ default: null, type: String })
   cc?: string | null;
 
-  @Column({ nullable: true, default: true, type: String })
+  @Column({ default: null, type: String })
   bcc?: string | null;
 
   @Column({ nullable: false })

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { MailsService } from './mails.service';
+import { APP_TIMEZONE, IS_PRODUCTION } from '../../common/constants/constants';
 
 @Injectable()
 export class MailCron {
@@ -15,7 +16,10 @@ export class MailCron {
   /**
    * Todos los días a medianoche
    */
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    timeZone: APP_TIMEZONE,
+    disabled: !IS_PRODUCTION,
+  })
   async handlePendingMails() {
     const mailEnabled = this.configService.get<boolean>('MAIL_ENABLED', true);
 

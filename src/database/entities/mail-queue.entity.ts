@@ -11,23 +11,23 @@ export enum MailStatus {
 
 @Entity()
 export class MailQueue extends BaseEntity {
-  @Column({ length: 255 })
-  from!: string;
+  @Column({ length: 255, default: null })
+  from?: string;
 
   @Column({ length: 255 })
   to!: string;
 
-  @Column({ length: 255, nullable: true, type: String })
+  @Column({ length: 255, default: null, type: String })
   cc?: string | null;
 
-  @Column({ length: 255, nullable: true, type: String })
+  @Column({ length: 255, default: null, type: String })
   bcc?: string | null;
 
   @Column({ length: 255 })
   subject!: string;
 
-  @Column({ type: 'longtext' })
-  html!: string;
+  @Column({ type: 'longtext', default: null })
+  html?: string;
 
   @ManyToOne(() => Template, (template) => template.queueMails)
   @JoinColumn({ name: 'template_id' })
@@ -41,19 +41,26 @@ export class MailQueue extends BaseEntity {
   })
   status!: MailStatus;
 
-  @Column({ type: 'text', nullable: true, name: 'error_message' })
+  @Column({ type: 'text', default: null, name: 'error_message' })
   errorMessage?: string | null;
 
   @Column({ type: 'int', default: 0 })
   attempts!: number;
 
-  @Column({ type: 'text', nullable: true })
-  metadata?: string | null;
+  @Column({ type: 'text', default: null })
+  metadata?: string;
 
-  @Column({ type: 'timestamp', nullable: true, name: 'sent_at' })
-  sentAt?: Date | null;
+  @Column({ type: 'timestamp', default: null, name: 'sent_at' })
+  sentAt?: Date;
 
   @ManyToOne(() => Client, (client) => client.queueMails, { nullable: true })
   @JoinColumn({ name: 'client_id' })
-  client?: Client | null;
+  client?: Client;
+
+  @Column({
+    type: 'simple-array',
+    name: 'attached_files',
+    default: null,
+  })
+  attachedFiles?: string[] | null;
 }

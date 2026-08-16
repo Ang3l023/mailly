@@ -1,17 +1,15 @@
 import type { DeepPartial } from 'typeorm';
 import { Client } from '../../../database/entities/client.entity';
 import {
-  IsArray,
-  IsBase64,
   IsEmail,
   IsNotEmpty,
   IsNumber,
   IsObject,
   IsOptional,
   IsString,
-  ValidateIf,
   ValidateNested,
 } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class CreateSentMailDto {
   @IsOptional()
@@ -43,8 +41,7 @@ export class CreateSentMailDto {
   template!: number;
 
   @IsOptional()
-  @IsArray()
-  @IsObject({ each: true })
+  @Type(() => AttachedFileDto)
   @ValidateNested({ each: true })
   attachedFiles?: AttachedFileDto[];
 
@@ -58,19 +55,29 @@ export class CreateSentMailDto {
 
   @IsOptional()
   @IsObject()
+  @Transform(({ value }): Record<string, string | number> => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value as any;
+      }
+    }
+    return value;
+  })
   params?: Record<string, string | number>;
 }
 
 export class AttachedFileDto {
-  @ValidateIf(
-    (o: AttachedFileDto) => o.base64 !== undefined && o.base64 !== null,
-  )
   @IsNotEmpty()
   @IsString()
   fileName!: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  @IsBase64()
-  base64!: string;
+  content!: string | Buffer;
+
+  @IsString()
+  @IsOptional()
+  contentType?: string;
 }

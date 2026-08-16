@@ -57,4 +57,10 @@ export class SendMailDto {
   @IsObject()
   @IsOptional()
   metadata?: Record<string, any>;
+
+  attachments?: {
+    filename: string;
+    content: Buffer;
+    contentType?: string;
+  }[];
 }

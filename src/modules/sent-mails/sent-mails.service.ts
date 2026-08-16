@@ -48,6 +48,7 @@ export class SentMailsService {
       params,
       cc,
       bcc,
+      attachedFiles,
     } = createSentMailDto;
 
     const sent = await this.sentMailsRepository.create({
@@ -62,6 +63,7 @@ export class SentMailsService {
       status: EStatusSentMail.SENT,
       errorMessage: null,
       metadata: params ? JSON.stringify(params) : null,
+      attachedFile: attachedFiles?.map((a) => a.fileName).join(','),
     });
 
     return sent;
@@ -132,6 +134,7 @@ export class SentMailsService {
       bcc,
       context,
       text,
+      attachedFiles,
     } = dto;
 
     const sendMailDto: SendMailDto = {
@@ -143,6 +146,16 @@ export class SentMailsService {
       context,
       text,
       metadata: params,
+      attachments: attachedFiles
+        ? attachedFiles?.map((file) => ({
+            filename: file.fileName,
+            content:
+              typeof file.content === 'string'
+                ? Buffer.from(file.content, 'base64')
+                : file.content,
+            contentType: file.contentType,
+          }))
+        : undefined,
     };
 
     if (template.file) {

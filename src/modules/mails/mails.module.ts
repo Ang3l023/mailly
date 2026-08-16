@@ -1,13 +1,14 @@
 import { Global, Module } from '@nestjs/common';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { MailsService } from './mails.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { IConfigSchema } from '../../common/interfaces/config.interface';
-import { join } from 'path';
+import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
+import { join } from 'path';
+import { MailsService } from './mails.service';
+import { IConfigSchema } from '../../common/interfaces/config.interface';
 import { TemplatesModule } from '../templates/templates.module';
 import { QueueMailModule } from '../queue-mail/queue-mail.module';
 import { SentMailsModule } from '../sent-mails/sent-mails.module';
+import { MailCron } from './mail.cron';
 
 @Global()
 @Module({
@@ -42,7 +43,7 @@ import { SentMailsModule } from '../sent-mails/sent-mails.module';
     QueueMailModule,
     SentMailsModule,
   ],
-  providers: [MailsService],
+  providers: [MailsService, MailCron],
   exports: [MailsService],
 })
 export class MailsModule {}

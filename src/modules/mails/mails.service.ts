@@ -27,6 +27,13 @@ import {
 import { IProcessPendingResponse } from './interfaces/process-pending.interface';
 import { SentMailsService } from '../sent-mails/sent-mails.service';
 import { FileStorageService } from '../file-storage/file-storage.service';
+import { FileStorageError } from '../file-storage/errors/file-storage.errors';
+import { S3ServiceException } from '@aws-sdk/client-s3';
+import Mail from 'nodemailer/lib/mailer';
+import {
+  S3_FILENAME_FROM_PATH,
+  S3_PATH,
+} from '../../common/constants/s3-path.constant';
 
 @Injectable()
 export class MailsService {
@@ -43,7 +50,7 @@ export class MailsService {
     private readonly sentMailService: SentMailsService,
     private readonly fileStorageService: FileStorageService,
   ) {
-    this.isActive = configService.get('mail.enabled', { infer: true }) || true;
+    this.isActive = configService.get('mail.enabled', { infer: true })!;
   }
 
   /**
@@ -110,16 +117,9 @@ export class MailsService {
 
         const html = compileTemplate(dto.metadata);
 
-        await this.mailerService.sendMail({
-          to: dto.to,
-          cc: dto.cc,
-          bcc: dto.bcc,
-          subject: dto.subject,
-          html,
-          text: dto.text,
-        });
-      } else {
-        const html = this.replaceVariablesHtml(dto.html!, dto.metadata);
+        this.logger.log(
+          `[SEND_MAIL][TEMPLATE:FILE][TO:${dto.to}][SUBJECT:${dto.subject}][ATTACHMENTS:${dto.attachments?.map((f) => f.filename).join(',') ?? 'NO_ATTACHMENTS'}]`,
+        );
 
         await this.mailerService.sendMail({
           to: dto.to,
@@ -128,6 +128,37 @@ export class MailsService {
           subject: dto.subject,
           html,
           text: dto.text,
+          attachments: dto.attachments?.map((attachment) => ({
+            filename: attachment.filename,
+            content:
+              typeof attachment.content === 'string'
+                ? Buffer.from(attachment.content, 'base64')
+                : attachment.content,
+            contentType: attachment.contentType,
+          })),
+        });
+      } else {
+        const html = this.replaceVariablesHtml(dto.html!, dto.metadata);
+
+        this.logger.log(
+          `[SEND_MAIL][TEMPLATE:HTMl][TO:${dto.to}][SUBJECT:${dto.subject}][ATTACHMENTS:${dto.attachments?.map((f) => f.filename).join(',') ?? 'NO_ATTACHMENTS'}]`,
+        );
+
+        await this.mailerService.sendMail({
+          to: dto.to,
+          cc: dto.cc,
+          bcc: dto.bcc,
+          subject: dto.subject,
+          html,
+          text: dto.text,
+          attachments: dto.attachments?.map((attachment) => ({
+            filename: attachment.filename,
+            content:
+              typeof attachment.content === 'string'
+                ? Buffer.from(attachment.content, 'base64')
+                : attachment.content,
+            contentType: attachment.contentType,
+          })),
         });
       }
 
@@ -189,6 +220,22 @@ export class MailsService {
       clientId!,
     );
 
+    const attachedFiles: string[] = [];
+
+    if (dto.attachments && dto.attachments.length > 0) {
+      await Promise.all(
+        dto.attachments.map(async (attachment) => {
+          const fileKey = S3_PATH.ATTACHMENTS_QUEUE(attachment.filename);
+          await this.fileStorageService.upload({
+            key: fileKey,
+            body: attachment.content,
+            contentType: attachment.contentType ?? 'application/octet-stream',
+          });
+          attachedFiles.push(fileKey);
+        }),
+      );
+    }
+
     const saved = await this.queueMailService.create({
       from: dto.from,
       to: dto.to,
@@ -199,6 +246,7 @@ export class MailsService {
       template: template.id,
       errorMessage: errorMessage || undefined,
       metadata: dto.metadata,
+      attachedFiles,
     });
 
     this.logger.warn(
@@ -362,13 +410,56 @@ export class MailsService {
           );
         }
 
+        const attachedFiles: Mail.Attachment[] = [];
+
+        if (mail.attachedFiles && mail.attachedFiles.length > 0) {
+          await Promise.all(
+            mail.attachedFiles.map(async (attached) => {
+              try {
+                const file = await this.fileStorageService.get(attached);
+
+                attachedFiles.push({
+                  filename: S3_FILENAME_FROM_PATH.ATTACHMENTS_QUEUE(attached),
+                  content: Buffer.from(await file.Body!.transformToByteArray()),
+                  contentType: file.ContentType,
+                });
+              } catch (error) {
+                if (error instanceof FileStorageError) {
+                  this.logger.error(
+                    `[ERROR][GET_FILE_STORAGE][URL:${attached}][${error.message}][${error.stack}]`,
+                  );
+                } else if (error instanceof S3ServiceException) {
+                  this.logger.error(
+                    `[ERROR][GET_FILE_STORAGE][URL:${attached}][${error.message}]`,
+                  );
+                } else {
+                  this.logger.error(
+                    `[ERROR][GET_FILE_STORAGE][URL:${attached}][${error}]`,
+                  );
+                }
+              }
+            }),
+          );
+        }
+
         await this.mailerService.sendMail({
           to: mail.to,
           cc: mail.cc || undefined,
           bcc: mail.bcc || undefined,
           subject: mail.subject,
           html,
+          attachments: attachedFiles,
         });
+
+        if (mail.attachedFiles && mail.attachedFiles.length > 0) {
+          try {
+            await this.fileStorageService.deleteMany(mail.attachedFiles);
+          } catch (error) {
+            this.logger.error(
+              `[ERROR][DELETE_FILE_STORAGE][URLS:${mail.attachedFiles.join(',')}][${error}]`,
+            );
+          }
+        }
 
         mail.status = MailStatus.SENT;
         mail.sentAt = new Date();
