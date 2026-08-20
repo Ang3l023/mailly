@@ -65,12 +65,15 @@ export class Variable extends BaseEntity {
   @Column({ default: true, name: 'is_active' })
   isActive!: boolean;
 
+  @Column({ default: true })
+  visible?: boolean;
+
   @ManyToMany(() => Template, (template) => template.variables)
   templates!: Template[];
 
-  @OneToMany(() => VariableOptions, (opts) => opts.variable)
+  @OneToMany(() => VariableOptions, (opts) => opts.variable, { cascade: true })
   options!: VariableOptions[];
 
-  @OneToMany(() => VariableRules, (rules) => rules.variable)
+  @OneToMany(() => VariableRules, (rules) => rules.variable, { cascade: true })
   rules!: VariableRules[];
 }

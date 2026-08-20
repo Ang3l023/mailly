@@ -1,4 +1,5 @@
 import {
+  FindOptionsOrder,
   FindOptionsRelations,
   FindOptionsSelect,
   FindOptionsWhere,
@@ -12,4 +13,5 @@ export interface PaginateOptions<T extends ObjectLiteral> {
   relations?: FindOptionsRelations<T>;
   select?: FindOptionsSelect<T>;
   searchFields?: (keyof T)[];
+  orderBy?: FindOptionsOrder<T>;
 }

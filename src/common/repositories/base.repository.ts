@@ -54,6 +54,7 @@ export abstract class BaseRepository<
       relations,
       select,
       searchFields = [],
+      orderBy = {},
     } = options;
 
     const page = pagination.page ?? 1;
@@ -122,6 +123,10 @@ export abstract class BaseRepository<
       order = {
         [pagination.sortBy]: pagination.sortOrder ?? 'DESC',
       } as FindOptionsOrder<T>;
+    }
+
+    if (orderBy) {
+      Object.assign(order, orderBy);
     }
 
     const [data, total] = await this.repository.findAndCount({
