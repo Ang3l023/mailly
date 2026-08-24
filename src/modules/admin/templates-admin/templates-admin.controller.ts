@@ -1,21 +1,24 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseInterceptors,
-  UploadedFile,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TemplatesAdminService } from './templates-admin.service';
 import { CreateTemplatesAdminDto } from './dto/create-templates-admin.dto';
 import { UpdateTemplatesAdminDto } from './dto/update-templates-admin.dto';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { ERole } from '../../../common/enums/users/roles.enum';
 
+@Roles(ERole.ADMIN)
 @Controller('admin/templates')
 export class TemplatesAdminController {
   constructor(private readonly templatesAdminService: TemplatesAdminService) {}

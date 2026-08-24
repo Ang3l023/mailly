@@ -2,6 +2,7 @@
 import 'express';
 import { Client } from '../database/entities/client.entity';
 import { RequestContextData } from '../common/context/request-context';
+import { IPayloadToken } from '../common/interfaces/payload.interface';
 
 declare global {
   namespace Express {
@@ -11,6 +12,7 @@ declare global {
         'logs' | 'sentMails' | 'createdAt' | 'updatedAt' | 'deletedAt'
       >;
       context?: RequestContextData;
+      user?: IPayloadToken;
     }
   }
 }

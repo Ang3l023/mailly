@@ -12,7 +12,10 @@ import { ClientAdminService } from './client.service';
 import { CreateClientDto } from '../../clients/dto/create-client.dto';
 import { UpdateClientDto } from '../../clients/dto/update-client.dto';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { ERole } from '../../../common/enums/users/roles.enum';
 
+@Roles(ERole.ADMIN)
 @Controller('admin/client')
 export class ClientAdminController {
   constructor(private readonly clientService: ClientAdminService) {}

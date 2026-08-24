@@ -35,6 +35,18 @@ export class ClientsService {
     return client;
   }
 
+  async findByUserId(userId: number): Promise<Client> {
+    const client = await this.clientsRepository.findOne({
+      where: { user: { id: userId } },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Not found Client registered`);
+    }
+
+    return client;
+  }
+
   async findPaginated(
     paginationDto: PaginationDto,
   ): Promise<PaginatedResult<Client>> {

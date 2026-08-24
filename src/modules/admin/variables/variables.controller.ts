@@ -1,18 +1,21 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
 } from '@nestjs/common';
 import { VariablesAdminService } from './variables.service';
 import { CreateVariableAdminDto } from './dto/create-variable.dto';
 import { UpdateVariableAdminDto } from './dto/update-variable.dto';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { ERole } from '../../../common/enums/users/roles.enum';
 
+@Roles(ERole.ADMIN)
 @Controller('admin/variables')
 export class VariablesAdminController {
   constructor(private readonly variablesAdminService: VariablesAdminService) {}

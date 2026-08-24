@@ -1,10 +1,11 @@
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { Log } from './log.entity';
 import { SentMail } from './sent-mail.entity';
 import { BaseEntity } from './base.entity';
 import { Exclude } from 'class-transformer';
 import { Template } from './template.entity';
 import { MailQueue } from './mail-queue.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'clients' })
 export class Client extends BaseEntity {
@@ -34,4 +35,8 @@ export class Client extends BaseEntity {
 
   @OneToMany(() => Template, (template) => template.client)
   templates?: Template[];
+
+  @OneToOne(() => User, { cascade: true, nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'user_id' })
+  user?: User | null;
 }

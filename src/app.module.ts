@@ -19,6 +19,8 @@ import { AdminModule } from './modules/admin/admin.module';
 import { VariableModule } from './modules/variable/variable.module';
 import { FileStorageModule } from './modules/file-storage/file-storage.module';
 import { IS_PRODUCTION } from './common/constants/constants';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -39,6 +41,8 @@ import { IS_PRODUCTION } from './common/constants/constants';
     AdminModule,
     VariableModule,
     FileStorageModule,
+    AuthModule,
+    UserModule,
   ],
   controllers: [],
   providers: [

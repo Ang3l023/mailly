@@ -17,12 +17,14 @@ import { CreateSentMailDto } from './dto/create-sent-mail.dto';
 import { ClientMaillyGuard } from '../../common/guards/client-mailly.guard';
 import { CurrentClient } from '../../common/decorators/current-client.decorator';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { Public } from '../../common/decorators/is-public.decorator';
 
 @Controller('sent-mails')
 @UseGuards(ClientMaillyGuard)
 export class SentMailsController {
   constructor(private readonly sentMailsService: SentMailsService) {}
 
+  @Public()
   @Post()
   @UseInterceptors(FilesInterceptor('attachedFiles'))
   create(
