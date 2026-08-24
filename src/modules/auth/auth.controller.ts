@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Public } from '../../common/decorators/is-public.decorator';
+import { ERole } from '../../common/enums/users/roles.enum';
 
 @Public()
 @Controller('auth')
@@ -16,6 +17,6 @@ export class AuthController {
 
   @Post('sign-up')
   async signUp(@Body() signUpDto: CreateUserDto) {
-    return await this.authService.signUp(signUpDto);
+    return await this.authService.signUp({ ...signUpDto, role: ERole.USER });
   }
 }
