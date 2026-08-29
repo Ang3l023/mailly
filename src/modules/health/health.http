@@ -1,0 +1,2 @@
+### Health Service
+GET {{host}}/health

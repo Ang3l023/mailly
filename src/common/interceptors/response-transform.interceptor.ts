@@ -5,7 +5,6 @@ import {
   CallHandler,
   HttpStatus,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Request, Response } from 'express';
 import { SuccessResponse } from '../interfaces/success-response.interface';
@@ -16,10 +15,7 @@ export class ResponseTransformInterceptor<T> implements NestInterceptor<
   T,
   SuccessResponse<T>
 > {
-  intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Observable<SuccessResponse<T>> {
+  intercept(context: ExecutionContext, next: CallHandler): any {
     const request = context.switchToHttp().getRequest<Request>();
     const statusCode =
       context.switchToHttp().getResponse<Response>().statusCode ||
@@ -28,7 +24,11 @@ export class ResponseTransformInterceptor<T> implements NestInterceptor<
     const { requestId } = getRequestContext();
 
     return next.handle().pipe(
-      map<any, SuccessResponse<T>>((data: any) => {
+      map<any, SuccessResponse<T> | string>((data: any) => {
+        if (typeof data === 'string') {
+          return data;
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const isAlreadyFormatted =
           data &&

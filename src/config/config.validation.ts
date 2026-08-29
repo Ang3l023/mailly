@@ -21,14 +21,14 @@ export const configValidationSchema = Joi.object({
   MAIL_USER: Joi.string()
     .required()
     .when('NODE_ENV', {
-      is: 'development',
+      is: Joi.valid('development', 'test'),
       then: Joi.string().optional().allow(''),
       otherwise: Joi.string().required(),
     }),
   MAIL_PASS: Joi.string()
     .required()
     .when('NODE_ENV', {
-      is: 'development',
+      is: Joi.valid('development', 'test'),
       then: Joi.string().optional().allow(''),
       otherwise: Joi.string().required(),
     }),

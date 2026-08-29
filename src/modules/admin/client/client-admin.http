@@ -1,0 +1,33 @@
+### Find All Clients
+GET {{host}}/admin/client
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### Find One Client
+GET {{host}}/admin/client/1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### Create Client
+POST {{host}}/admin/client
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "apiKey": "{{$uuid}}",
+  "name": "{{$random.name.fullName}}"
+}
+
+### Update Client
+PATCH {{host}}/admin/client/1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "enabled": false
+}
+
+### Delete Client
+DELETE {{host}}/admin/client/1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}

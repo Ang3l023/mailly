@@ -1,0 +1,28 @@
+### SignIn User And Get Token
+POST {{host}}/auth/sign-in
+Content-Type: application/json
+
+{
+  "email": "angelo@gmail.com",
+  "password": "123456789"
+}
+
+> {%
+  // Save token in env variable
+  client.global.set("authToken", response.body.data.token);
+%}
+
+### SignUp User and Get Token
+POST {{host}}/auth/sign-up
+Content-Type: application/json
+
+{
+  "username": "{{$random.name.username}}",
+  "email": "{{$random.email}}",
+  "password": "123456789"
+}
+
+> {%
+  // Save token in env variable
+  client.global.set("authToken", response.body.data.token);
+%}
