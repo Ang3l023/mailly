@@ -5,6 +5,10 @@ import compression from 'compression';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ValidationException } from './exceptions/validation.exception';
+import { ConfigurationService } from './modules/configuration/configuration.service';
+import { CorsDatabaseConfig } from './modules/configuration/interfaces/cors-config.interface';
+
+type CorsOriginCallback = (err: Error | null, allow?: boolean) => void;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -31,7 +35,17 @@ async function bootstrap() {
   );
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  app.enableCors();
+  const configService: ConfigurationService = app.get(ConfigurationService);
+
+  const corsConfig: CorsDatabaseConfig = await configService.getCorsConfig();
+
+  app.enableCors({
+    origin: corsConfig.origins,
+    methods: corsConfig.methods,
+    allowHeaders: corsConfig.headers,
+    credentials: true,
+  });
+
   app.use(cookieParser());
   app.use(compression());
   app.use(helmet());
@@ -40,4 +54,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();

@@ -14,6 +14,7 @@ import { FileStorageModule } from './file-storage/file-storage.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { HealthController } from './health/health.controller';
+import { ConfigurationModule } from './configuration/configuration.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { HealthController } from './health/health.controller';
     FileStorageModule,
     AuthModule,
     UserModule,
+    ConfigurationModule,
   ],
   controllers: [HealthController],
 })

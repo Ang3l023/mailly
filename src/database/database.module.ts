@@ -10,6 +10,7 @@ import { VariableOptions } from './entities/variable-options';
 import { VariableRules } from './entities/variable-rules';
 import { MailQueue } from './entities/mail-queue.entity';
 import { User } from './entities/user.entity';
+import { Configuration } from './entities/configuration.entity';
 
 @Global()
 @Module({
@@ -28,6 +29,7 @@ import { User } from './entities/user.entity';
         logging: configService.get<boolean>('database.logging'),
         entities: [
           Client,
+          Configuration,
           User,
           MailQueue,
           SentMail,
