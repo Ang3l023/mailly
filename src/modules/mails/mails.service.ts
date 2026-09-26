@@ -19,7 +19,10 @@ import { TemplatesService } from '../templates/templates.service';
 import { QueueMailService } from '../queue-mail/queue-mail.service';
 import { SendMailDto } from './dto/send-mail.dto';
 import { IResponseSendMail } from './interfaces/send-mail-response.interface';
-import { ISendMailCustom } from './interfaces/send-mail-custom.interface';
+import {
+  ISendMailCustom,
+  ISendMailForgotPassword,
+} from './interfaces/send-mail-custom.interface';
 import {
   IErrorMailer,
   IHandleErrorMail,
@@ -34,6 +37,7 @@ import {
   S3_FILENAME_FROM_PATH,
   S3_PATH,
 } from '../../common/constants/s3-path.constant';
+import { join } from 'path';
 
 @Injectable()
 export class MailsService {
@@ -266,12 +270,13 @@ export class MailsService {
   }
 
   async sendMailCustom(dto: ISendMailCustom): Promise<void> {
-    const { to, from, subject, html, template, params } = dto;
+    const { to, from, subject, html, template, params, attachments = [] } = dto;
 
     const sendMailOptions: ISendMailOptions = {
       to,
       from,
       subject,
+      attachments,
     };
 
     if (html) {
@@ -284,24 +289,32 @@ export class MailsService {
     try {
       await this.mailerService.sendMail(sendMailOptions);
     } catch (error) {
-      this.logger.error('Error while sending welcome mail', error);
+      this.logger.error('Error while sending mail', error);
       throw new Error(
         this.handleErrorMail(error as IErrorMailer, dto.code).message,
       );
     }
   }
 
-  async sendMailForgotPassword(email: string, code: string): Promise<void> {
-    const sendDto: SendMailDto = {
+  async sendMailForgotPassword(dto: ISendMailForgotPassword): Promise<void> {
+    const { email, ...params } = dto;
+
+    const sendDto: ISendMailCustom = {
       from: this.configService.get<string>('mail.from', { infer: true })!,
+      subject: 'Código para restablecer tu contraseña',
       to: email,
-      subject: `Recuperar Contraseña`,
-      context: {
-        code,
-      },
-      templateCode: 1,
+      params,
+      template: 'auth/password-reset',
+      attachments: [
+        {
+          filename: 'logo_mailly.png',
+          path: join(__dirname, '..', '..', 'assets', 'logo_mailly.png'),
+          cid: 'mailly-logo',
+        },
+      ],
     };
-    await this.sendNow(sendDto);
+
+    await this.sendMailCustom(sendDto);
   }
 
   replaceVariablesHtml(

@@ -32,4 +32,11 @@ export class UserService {
   async create(data: CreateUserDto): Promise<User> {
     return await this.userRepository.create(data);
   }
+
+  async updatePassword(
+    userId: number,
+    newPasswordHashed: string,
+  ): Promise<void> {
+    await this.userRepository.update(userId, { password: newPasswordHashed });
+  }
 }

@@ -8,6 +8,8 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { ModuleModule } from './modules/module.module';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { TimezoneInterceptor } from './common/interceptors/timezone.interceptor';
 
 @Module({
   imports: [
@@ -18,12 +20,33 @@ import { ModuleModule } from './modules/module.module';
     }),
     DatabaseModule,
     ModuleModule,
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000,
+        limit: 3,
+      },
+      {
+        name: 'medium',
+        ttl: 10000,
+        limit: 20,
+      },
+      {
+        name: 'long',
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
   ],
   controllers: [],
   providers: [
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseTransformInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TimezoneInterceptor,
     },
     {
       provide: APP_FILTER,

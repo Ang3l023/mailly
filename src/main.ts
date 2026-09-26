@@ -8,8 +8,6 @@ import { ValidationException } from './exceptions/validation.exception';
 import { ConfigurationService } from './modules/configuration/configuration.service';
 import { CorsDatabaseConfig } from './modules/configuration/interfaces/cors-config.interface';
 
-type CorsOriginCallback = (err: Error | null, allow?: boolean) => void;
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 

@@ -26,3 +26,30 @@ Content-Type: application/json
   // Save token in env variable
   client.global.set("authToken", response.body.data.token);
 %}
+
+### Generate Token Reset Password
+POST {{host}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "Dx6T_@ECr.it"
+}
+
+### Verify Token Reset Password
+POST {{host}}/auth/verify-reset-code
+Content-Type: application/json
+
+{
+  "email": "Dx6T_@ECr.it",
+  "code": "896146"
+}
+
+### Reset Password with Token
+POST {{host}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "Dx6T_@ECr.it",
+  "code": "896146",
+  "newPassword": "12345678"
+}
