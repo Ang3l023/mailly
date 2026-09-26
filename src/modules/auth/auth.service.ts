@@ -9,6 +9,9 @@ import { ClientsService } from '../clients/clients.service';
 import { IPayloadToken } from '../../common/interfaces/payload.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ValidationException } from '../../exceptions/validation.exception';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { randomInt } from 'crypto';
+import { PasswordResetTokenRepository } from './repositories/password-reset-token.repository';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +21,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly clientService: ClientsService,
     private readonly jwtService: JwtService,
+    private readonly passwordResetTokenRepository: PasswordResetTokenRepository,
   ) {}
 
   async signUp(signUp: CreateUserDto): Promise<IToken> {
@@ -100,5 +104,26 @@ export class AuthService {
     return {
       token,
     };
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<void> {
+    const user = await this.userService.existByEmail(forgotPasswordDto.email);
+
+    if (!user) return;
+
+    const code = randomInt(100000, 1000000).toString();
+
+    const codeHash = await bcrypt.hash(code, 10);
+
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await this.passwordResetTokenRepository.create({
+      user,
+      codeHash,
+      expiresAt,
+      verified: false,
+      attempts: 0,
+      usedAt: null,
+    });
   }
 }

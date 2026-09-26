@@ -8,9 +8,13 @@ import { UserModule } from '../user/user.module';
 import { IConfigSchema } from '../../common/interfaces/config.interface';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PasswordResetToken } from '../../database/entities/password-reset-token.entity';
+import { PasswordResetTokenRepository } from './repositories/password-reset-token.repository';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([PasswordResetToken]),
     UserModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -29,6 +33,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
   controllers: [AuthController],
   providers: [
     AuthService,
+    PasswordResetTokenRepository,
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],

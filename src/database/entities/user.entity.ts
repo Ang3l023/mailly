@@ -1,6 +1,7 @@
 import { BaseEntity } from './base.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { ERole } from '../../common/enums/users/roles.enum';
+import { PasswordResetToken } from './password-reset-token.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -18,4 +19,7 @@ export class User extends BaseEntity {
 
   @Column({ default: true })
   enabled: boolean;
+
+  @OneToMany(() => PasswordResetToken, (resetToken) => resetToken.user)
+  passwordResetTokens: PasswordResetToken[];
 }

@@ -117,10 +117,6 @@ export class MailsService {
 
         const html = compileTemplate(dto.metadata);
 
-        this.logger.log(
-          `[SEND_MAIL][TEMPLATE:FILE][TO:${dto.to}][SUBJECT:${dto.subject}][ATTACHMENTS:${dto.attachments?.map((f) => f.filename).join(',') ?? 'NO_ATTACHMENTS'}]`,
-        );
-
         await this.mailerService.sendMail({
           to: dto.to,
           cc: dto.cc,
@@ -293,6 +289,19 @@ export class MailsService {
         this.handleErrorMail(error as IErrorMailer, dto.code).message,
       );
     }
+  }
+
+  async sendMailForgotPassword(email: string, code: string): Promise<void> {
+    const sendDto: SendMailDto = {
+      from: this.configService.get<string>('mail.from', { infer: true })!,
+      to: email,
+      subject: `Recuperar Contraseña`,
+      context: {
+        code,
+      },
+      templateCode: 1,
+    };
+    await this.sendNow(sendDto);
   }
 
   replaceVariablesHtml(

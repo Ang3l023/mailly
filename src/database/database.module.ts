@@ -11,6 +11,7 @@ import { VariableRules } from './entities/variable-rules';
 import { MailQueue } from './entities/mail-queue.entity';
 import { User } from './entities/user.entity';
 import { Configuration } from './entities/configuration.entity';
+import { PasswordResetToken } from './entities/password-reset-token.entity';
 
 @Global()
 @Module({
@@ -31,6 +32,7 @@ import { Configuration } from './entities/configuration.entity';
           Client,
           Configuration,
           User,
+          PasswordResetToken,
           MailQueue,
           SentMail,
           Log,
